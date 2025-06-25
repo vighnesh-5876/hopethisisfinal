@@ -114,7 +114,7 @@ async function fetchProductsFromDirectory() {
             if (response.ok) {
                 const text = await response.text();
                 const product = parseFrontMatter(text);
-                if (product.title) {
+                if (product.title && !product.draft) {
                     // Add filename for URL generation
                     product.slug = file.replace('.md', '');
                     products.push(product);

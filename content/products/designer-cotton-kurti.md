@@ -16,6 +16,7 @@ tags:
   - "comfortable"
   - "modern"
 date: "2025-06-25T09:30:00.000Z"
+draft: false
 ---
 
 This contemporary cotton kurti combines comfort with style, featuring beautiful prints and a flattering cut. Made from breathable cotton fabric, it's perfect for daily wear, office settings, or casual outings.

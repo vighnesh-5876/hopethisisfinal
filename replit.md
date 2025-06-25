@@ -100,6 +100,12 @@ This is a static fashion designer website built with HTML, CSS, and JavaScript. 
 
 ## Recent Changes
 
+- **June 25, 2025** - Draft/Publish System: Added editorial workflow with draft functionality for batch publishing
+- **June 25, 2025** - Modern Availability Indicators: Replaced badges with colored dots below prices (green "In Stock", red "Out of Stock")
+- **June 25, 2025** - Full-Screen Mobile Navigation: Implemented right-to-left sliding animation with gradient background
+- **June 25, 2025** - Animated Mobile Menu: Added staggered animations and custom hamburger-to-X transformation
+- **June 25, 2025** - Product Filtering: Draft products hidden from public view until published
+- **June 25, 2025** - Deployment Guide: Created comprehensive guide for Git integration and Netlify deployment
 - **June 25, 2025** - Navigation Enhancement: Added Categories dropdown with Sarees, Kurtis, Blouses
 - **June 25, 2025** - Product Sorting: Implemented sort by newest, price (low to high, high to low), and alphabetical (A-Z, Z-A)
 - **June 25, 2025** - UX Improvements: Made entire product cards clickable, not just buttons

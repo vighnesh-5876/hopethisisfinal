@@ -16,6 +16,7 @@ tags:
   - "festival wear"
   - "full sleeves"
 date: "2025-06-25T08:00:00.000Z"
+draft: false
 ---
 
 This elegant ethnic kurti showcases traditional Indian motifs in a contemporary style. The comfortable straight cut and quality fabric make it perfect for festivals, cultural events, and traditional occasions.

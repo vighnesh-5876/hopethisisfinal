@@ -16,6 +16,7 @@ tags:
   - "traditional"
   - "handwork"
 date: "2025-06-25T09:00:00.000Z"
+draft: false
 ---
 
 This exquisite designer blouse features detailed embroidery work with thread and sequin embellishments. The sophisticated design makes it perfect for pairing with sarees for weddings, parties, and festive occasions.

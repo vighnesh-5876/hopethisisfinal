@@ -16,6 +16,7 @@ tags:
   - "festive"
   - "party wear"
 date: "2025-06-25T08:30:00.000Z"
+draft: false
 ---
 
 This beautiful georgette saree features elegant floral prints with a sophisticated color palette. The lightweight fabric ensures comfortable wearing throughout the day while maintaining an elegant drape.

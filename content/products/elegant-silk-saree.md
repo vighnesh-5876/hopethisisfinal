@@ -16,6 +16,7 @@ tags:
   - "wedding"
   - "premium"
 date: "2025-06-25T10:00:00.000Z"
+draft: false
 ---
 
 This exquisite silk saree features traditional handwoven patterns with golden zari work along the border. The rich texture and lustrous finish make it perfect for weddings, festivals, and special celebrations. Each saree comes with a matching blouse piece.

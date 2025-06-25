@@ -5,6 +5,9 @@ backend:
 media_folder: static/uploads
 public_folder: /static/uploads
 
+# Enable editorial workflow for draft/publish functionality
+publish_mode: editorial_workflow
+
 collections:
   - name: "site"
     label: "Site Settings"
@@ -40,3 +43,4 @@ collections:
       - {label: "Gallery Images", name: "gallery", widget: "list", field: {label: "Image", name: "image", widget: "image"}, required: false}
       - {label: "Tags", name: "tags", widget: "list", required: false}
       - {label: "Publish Date", name: "date", widget: "datetime"}
+      - {label: "Draft", name: "draft", widget: "boolean", default: false, hint: "Mark as draft to hide from website until published"}
