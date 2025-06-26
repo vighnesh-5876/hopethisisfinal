@@ -5,7 +5,7 @@ description: Beautiful handwoven silk saree with intricate golden border work.
   with traditional craftsmanship.
 price: 4500
 category: sarees
-available: false
+available: true
 featured: true
 image: /static/uploads/screenshot-2025-06-24-152504.png
 gallery:
