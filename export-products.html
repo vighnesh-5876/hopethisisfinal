@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Products for Netlify</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .export-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .product { background: #f9f9f9; margin: 10px 0; padding: 10px; border-radius: 5px; }
+        textarea { width: 100%; height: 200px; font-family: monospace; font-size: 12px; }
+        button { background: #0d6efd; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b5ed7; }
+        .instruction { background: #e7f3ff; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Export Products to Netlify CMS</h1>
+        
+        <div class="instruction">
+            <h3>Instructions:</h3>
+            <p>1. Click "Load Products" to see all your current products</p>
+            <p>2. Copy the JSON data from the textarea below</p>
+            <p>3. Go to your live site admin: <strong>luminous-hotteok-245cee.netlify.app/admin</strong></p>
+            <p>4. Add products manually using the data shown here</p>
+        </div>
+
+        <button onclick="loadProducts()">Load Products from Replit</button>
+        <button onclick="downloadAsJson()">Download as JSON File</button>
+        
+        <div class="export-section">
+            <h3>Product Data (JSON Format):</h3>
+            <textarea id="jsonOutput" placeholder="Click 'Load Products' to see your product data here..."></textarea>
+        </div>
+
+        <div class="export-section">
+            <h3>Individual Products:</h3>
+            <div id="productsList"></div>
+        </div>
+    </div>
+
+    <script>
+        let productsData = [];
+
+        async function loadProducts() {
+            const productFiles = [
+                'elegant-silk-saree.md',
+                'designer-cotton-kurti.md', 
+                'embroidered-blouse.md',
+                'festive-georgette-saree.md',
+                'ethnic-printed-kurti.md',
+                'silk-designer-blouse.md'
+            ];
+            
+            productsData = [];
+            const productsList = document.getElementById('productsList');
+            productsList.innerHTML = '<p>Loading products...</p>';
+            
+            for (const file of productFiles) {
+                try {
+                    const response = await fetch(`/content/products/${file}`);
+                    if (response.ok) {
+                        const text = await response.text();
+                        const product = parseFrontMatter(text);
+                        if (product.title) {
+                            product.filename = file;
+                            productsData.push(product);
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error loading ${file}:`, error);
+                }
+            }
+            
+            displayProducts();
+            updateJsonOutput();
+        }
+
+        function displayProducts() {
+            const productsList = document.getElementById('productsList');
+            productsList.innerHTML = '';
+            
+            productsData.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product';
+                productDiv.innerHTML = `
+                    <h4>${product.title}</h4>
+                    <p><strong>File:</strong> ${product.filename}</p>
+                    <p><strong>Price:</strong> ₹${product.price}</p>
+                    <p><strong>Category:</strong> ${product.category}</p>
+                    <p><strong>Available:</strong> ${product.available ? 'Yes' : 'No'}</p>
+                    <p><strong>Image:</strong> ${product.image}</p>
+                    <p><strong>Status:</strong> ${product.draft ? 'Draft' : 'Published'}</p>
+                `;
+                productsList.appendChild(productDiv);
+            });
+        }
+
+        function updateJsonOutput() {
+            const jsonOutput = document.getElementById('jsonOutput');
+            jsonOutput.value = JSON.stringify(productsData, null, 2);
+        }
+
+        function downloadAsJson() {
+            if (productsData.length === 0) {
+                alert('Please load products first!');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(productsData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'fashion-products-export.json';
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        function parseFrontMatter(content) {
+            const match = content.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
+            if (!match) return {};
+            
+            const frontMatter = match[1];
+            const body = match[2];
+            const data = { content: body };
+            const lines = frontMatter.split('\n');
+            
+            for (const line of lines) {
+                const colonIndex = line.indexOf(':');
+                if (colonIndex > 0) {
+                    const key = line.substring(0, colonIndex).trim();
+                    let value = line.substring(colonIndex + 1).trim();
+                    
+                    if ((value.startsWith('"') && value.endsWith('"')) || 
+                        (value.startsWith("'") && value.endsWith("'"))) {
+                        value = value.slice(1, -1);
+                    }
+                    
+                    if (value === 'true') value = true;
+                    if (value === 'false') value = false;
+                    if (!isNaN(value) && value !== '' && !isNaN(Number(value))) {
+                        value = Number(value);
+                    }
+                    
+                    // Handle arrays (tags, gallery)
+                    if (key === 'tags' || key === 'gallery') {
+                        const nextLines = [];
+                        let lineIndex = lines.indexOf(line) + 1;
+                        while (lineIndex < lines.length && lines[lineIndex].startsWith('  - ')) {
+                            let arrayValue = lines[lineIndex].substring(4).trim();
+                            if ((arrayValue.startsWith('"') && arrayValue.endsWith('"')) || 
+                                (arrayValue.startsWith("'") && arrayValue.endsWith("'"))) {
+                                arrayValue = arrayValue.slice(1, -1);
+                            }
+                            nextLines.push(arrayValue);
+                            lineIndex++;
+                        }
+                        if (nextLines.length > 0) {
+                            value = nextLines;
+                        }
+                    }
+                    
+                    data[key] = value;
+                }
+            }
+            
+            return data;
+        }
+    </script>
+</body>
+</html>
