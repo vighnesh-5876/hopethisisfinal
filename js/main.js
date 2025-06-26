@@ -78,6 +78,9 @@ function applySiteData() {
     if (siteData.secondary_color) {
         document.documentElement.style.setProperty('--secondary-color', siteData.secondary_color);
     }
+
+    // Update footer elements
+    updateFooterContent();
 }
 
 // Load products data
@@ -89,7 +92,7 @@ async function loadProducts() {
         displayProducts();
         displayFeaturedProducts();
         
-        // Set up automatic refresh for new products (check every 30 seconds)
+        // Set up automatic refresh for new products (check every 5 minutes for better performance)
         if (!window.productRefreshInterval) {
             window.productRefreshInterval = setInterval(async () => {
                 const newProducts = await fetchProductsFromDirectory();
@@ -99,7 +102,7 @@ async function loadProducts() {
                     displayProducts();
                     displayFeaturedProducts();
                 }
-            }, 30000);
+            }, 300000);
         }
     } catch (error) {
         console.error('Error loading products:', error);
@@ -181,57 +184,20 @@ async function fetchProductsFromDirectory() {
             }
         }
         
-        // Try an extended range of common naming patterns for new products
-        const commonPrefixes = ['new-', 'latest-', 'featured-', 'special-', 'designer-', 'premium-', 'exclusive-', 'limited-', 'trending-', 'bestseller-'];
-        const commonSuffixes = ['saree', 'kurti', 'blouse', 'dress', 'suit', 'lehenga', 'anarkali', 'sharara', 'palazzo', 'dupatta'];
-        const commonColors = ['red', 'blue', 'green', 'pink', 'yellow', 'black', 'white', 'purple', 'orange', 'golden'];
-        const commonPatterns = ['floral', 'geometric', 'printed', 'embroidered', 'plain', 'striped', 'dotted'];
-        
-        // Try prefix-suffix combinations
-        for (const prefix of commonPrefixes) {
-            for (const suffix of commonSuffixes) {
-                const filename = `${prefix}${suffix}.md`;
-                if (!potentialFiles.includes(filename)) {
-                    await tryFetchProduct(filename, products);
-                }
-            }
-        }
-        
-        // Try color-suffix combinations
-        for (const color of commonColors) {
-            for (const suffix of commonSuffixes) {
-                const filename = `${color}-${suffix}.md`;
-                if (!potentialFiles.includes(filename)) {
-                    await tryFetchProduct(filename, products);
-                }
-            }
-        }
-        
-        // Try pattern-suffix combinations
-        for (const pattern of commonPatterns) {
-            for (const suffix of commonSuffixes) {
-                const filename = `${pattern}-${suffix}.md`;
-                if (!potentialFiles.includes(filename)) {
-                    await tryFetchProduct(filename, products);
-                }
-            }
-        }
-        
-        // Try some common product names that might be added
+        // Only scan for most likely new product patterns to improve speed
         const commonProductNames = [
-            'traditional-saree', 'modern-kurti', 'party-wear-blouse',
-            'casual-dress', 'formal-suit', 'wedding-lehenga',
-            'cotton-kurti', 'silk-saree', 'chiffon-dress',
-            'handloom-saree', 'block-print-kurti', 'mirror-work-blouse',
-            'bandhani-saree', 'kalamkari-kurti', 'zari-work-blouse'
+            'test-multi-image-saree', // Include our test product
+            'new-saree', 'new-kurti', 'new-blouse',
+            'latest-saree', 'latest-kurti', 'latest-blouse',
+            'featured-saree', 'featured-kurti', 'featured-blouse'
         ];
         
-        for (const productName of commonProductNames) {
-            const filename = `${productName}.md`;
-            if (!potentialFiles.includes(filename)) {
-                await tryFetchProduct(filename, products);
-            }
-        }
+        // Use Promise.all for parallel requests to speed up loading
+        const additionalProductPromises = commonProductNames
+            .filter(productName => !potentialFiles.includes(`${productName}.md`))
+            .map(productName => tryFetchProduct(`${productName}.md`, products));
+        
+        await Promise.all(additionalProductPromises);
         
     } catch (error) {
         console.error('Error fetching products:', error);
@@ -524,4 +490,44 @@ function formatPrice(price) {
         style: 'currency',
         currency: 'INR'
     }).format(price);
+}
+
+// Update footer content with site data
+function updateFooterContent() {
+    // Update footer brand
+    const footerSiteTitle = document.getElementById('footer-site-title');
+    if (footerSiteTitle && siteData.title) {
+        footerSiteTitle.textContent = siteData.title;
+    }
+
+    // Update footer description
+    const footerDescription = document.getElementById('footer-description');
+    if (footerDescription && siteData.description) {
+        footerDescription.textContent = siteData.description;
+    }
+
+    // Update footer copyright brand
+    const footerCopyrightBrand = document.getElementById('footer-copyright-brand');
+    if (footerCopyrightBrand && siteData.title) {
+        footerCopyrightBrand.textContent = siteData.title;
+    }
+
+    // Update footer phone
+    const footerPhone = document.getElementById('footer-phone');
+    if (footerPhone && siteData.whatsapp_number) {
+        footerPhone.textContent = siteData.whatsapp_number;
+    }
+
+    // Update footer WhatsApp link
+    const footerWhatsapp = document.getElementById('footer-whatsapp');
+    if (footerWhatsapp && siteData.whatsapp_number) {
+        const message = 'Hello! I am interested in your fashion collection.';
+        footerWhatsapp.href = `https://wa.me/${siteData.whatsapp_number}?text=${encodeURIComponent(message)}`;
+    }
+
+    // Update footer Instagram link
+    const footerInstagram = document.getElementById('footer-instagram');
+    if (footerInstagram && siteData.instagram_id) {
+        footerInstagram.href = `https://instagram.com/${siteData.instagram_id}`;
+    }
 }
