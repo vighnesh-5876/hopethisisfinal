@@ -3,8 +3,8 @@ title: Old Kurta Yellow And Green
 description: Old Kurta Yellow And Green
 price: 200
 category: kurtis
-available: true
-featured: true
+available: false
+featured: false
 image: /static/uploads/screenshot-2025-06-24-152504.png
 gallery:
   - /static/uploads/screenshot-2025-06-24-152504.png
