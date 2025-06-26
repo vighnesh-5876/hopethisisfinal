@@ -1,5 +1,5 @@
 ---
-title: Full Kurta Yellow and Green
+title: "Full Kurta Yellow and Green "
 description: Full Kurta Yellow and Green
 price: 234
 category: kurtis
