@@ -126,7 +126,9 @@ async function fetchProductsFromDirectory() {
             'embroidered-blouse.md',
             'festive-georgette-saree.md',
             'ethnic-printed-kurti.md',
-            'silk-designer-blouse.md'
+            'silk-designer-blouse.md',
+            'test-multi-image-saree.md',
+            'admin-test-product.md'
         ];
         
         // Try to fetch a directory index if available
@@ -134,18 +136,21 @@ async function fetchProductsFromDirectory() {
             const indexResponse = await fetch('/content/products/');
             if (indexResponse.ok) {
                 const indexText = await indexResponse.text();
+                console.log('Directory listing available, parsing for .md files');
+                
                 // Parse HTML directory listing to find .md files
                 const matches = indexText.match(/href="([^"]*\.md)"/g);
                 if (matches) {
                     const foundFiles = matches.map(match => match.match(/href="([^"]*)"/)[1])
-                        .filter(file => file.endsWith('.md') && !file.includes('/'));
+                        .filter(file => file.endsWith('.md') && !file.includes('/') && file !== '.gitkeep');
                     
-                    // Add any new files found to our potential files list
-                    foundFiles.forEach(file => {
-                        if (!potentialFiles.includes(file)) {
-                            potentialFiles.push(file);
-                        }
-                    });
+                    console.log('Found .md files in directory:', foundFiles);
+                    
+                    // Replace potential files with actually discovered files
+                    potentialFiles.length = 0; // Clear the array
+                    potentialFiles.push(...foundFiles);
+                } else {
+                    console.log('No .md files found in directory listing');
                 }
             }
         } catch (indexError) {
@@ -184,20 +189,8 @@ async function fetchProductsFromDirectory() {
             }
         }
         
-        // Only scan for most likely new product patterns to improve speed
-        const commonProductNames = [
-            'test-multi-image-saree', // Include our test product
-            'new-saree', 'new-kurti', 'new-blouse',
-            'latest-saree', 'latest-kurti', 'latest-blouse',
-            'featured-saree', 'featured-kurti', 'featured-blouse'
-        ];
-        
-        // Use Promise.all for parallel requests to speed up loading
-        const additionalProductPromises = commonProductNames
-            .filter(productName => !potentialFiles.includes(`${productName}.md`))
-            .map(productName => tryFetchProduct(`${productName}.md`, products));
-        
-        await Promise.all(additionalProductPromises);
+        // For new products added via admin panel, we rely on the directory listing
+        // No need to scan for hypothetical files that cause 404 errors
         
     } catch (error) {
         console.error('Error fetching products:', error);

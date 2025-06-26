@@ -1,7 +1,7 @@
-Enhance website with new footer, legal pages, and optimized product loading
+Show products added via the admin panel on the website
 
-Implements a redesigned footer in CSS and HTML, adds Privacy Policy, Terms & Conditions, and Return Policy pages, and improves product loading in main.js.
+Improves product fetching logic by parsing the directory listing for `.md` files and adds `admin-test-product.md`.
 
 Replit-Commit-Author: Agent
 Replit-Commit-Session-Id: c3f81ff5-d56e-49f2-b672-81fd9255c186
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/b2ce4d04-aa8a-4f0c-9272-c62faa9aaf79/8991096b-1e36-452b-a0ac-9e077e83fb37.jpg
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/b2ce4d04-aa8a-4f0c-9272-c62faa9aaf79/7183c63f-50a6-454d-b412-4efcf00ca928.jpg
