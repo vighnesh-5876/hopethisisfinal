@@ -88,6 +88,19 @@ async function loadProducts() {
         productsData = await fetchProductsFromDirectory();
         displayProducts();
         displayFeaturedProducts();
+        
+        // Set up automatic refresh for new products (check every 30 seconds)
+        if (!window.productRefreshInterval) {
+            window.productRefreshInterval = setInterval(async () => {
+                const newProducts = await fetchProductsFromDirectory();
+                if (newProducts.length !== productsData.length) {
+                    console.log('New products detected, refreshing...');
+                    productsData = newProducts;
+                    displayProducts();
+                    displayFeaturedProducts();
+                }
+            }, 30000);
+        }
     } catch (error) {
         console.error('Error loading products:', error);
         showNoProductsMessage();
@@ -98,34 +111,162 @@ async function loadProducts() {
 async function fetchProductsFromDirectory() {
     const products = [];
     
-    // Demo product files
-    const productFiles = [
-        'elegant-silk-saree.md',
-        'designer-cotton-kurti.md', 
-        'embroidered-blouse.md',
-        'festive-georgette-saree.md',
-        'ethnic-printed-kurti.md',
-        'silk-designer-blouse.md'
-    ];
-    
-    for (const file of productFiles) {
+    try {
+        // First, try to get directory listing via a known endpoint
+        // Since we can't directly list directory contents in a static environment,
+        // we'll use a more robust approach by trying common product files
+        // and also checking for any new files that might have been added
+        
+        const potentialFiles = [
+            'elegant-silk-saree.md',
+            'designer-cotton-kurti.md', 
+            'embroidered-blouse.md',
+            'festive-georgette-saree.md',
+            'ethnic-printed-kurti.md',
+            'silk-designer-blouse.md'
+        ];
+        
+        // Try to fetch a directory index if available
         try {
-            const response = await fetch(`/content/products/${file}`);
-            if (response.ok) {
-                const text = await response.text();
-                const product = parseFrontMatter(text);
-                if (product.title && !product.draft) {
-                    // Add filename for URL generation
-                    product.slug = file.replace('.md', '');
-                    products.push(product);
+            const indexResponse = await fetch('/content/products/');
+            if (indexResponse.ok) {
+                const indexText = await indexResponse.text();
+                // Parse HTML directory listing to find .md files
+                const matches = indexText.match(/href="([^"]*\.md)"/g);
+                if (matches) {
+                    const foundFiles = matches.map(match => match.match(/href="([^"]*)"/)[1])
+                        .filter(file => file.endsWith('.md') && !file.includes('/'));
+                    
+                    // Add any new files found to our potential files list
+                    foundFiles.forEach(file => {
+                        if (!potentialFiles.includes(file)) {
+                            potentialFiles.push(file);
+                        }
+                    });
                 }
             }
-        } catch (err) {
-            console.log(`Product file ${file} not found, skipping`);
+        } catch (indexError) {
+            console.log('Directory listing not available, using known files');
         }
+        
+        // Try to fetch each potential product file
+        for (const file of potentialFiles) {
+            try {
+                const response = await fetch(`/content/products/${file}`);
+                if (response.ok) {
+                    const text = await response.text();
+                    const product = parseFrontMatter(text);
+                    if (product.title && !product.draft) {
+                        // Add filename for URL generation
+                        product.slug = file.replace('.md', '');
+                        
+                        // Process gallery images array properly
+                        if (product.gallery && typeof product.gallery === 'string') {
+                            // Handle case where gallery is stored as a string in YAML
+                            try {
+                                product.gallery = JSON.parse(product.gallery);
+                            } catch (e) {
+                                // If it's not JSON, treat as single item array
+                                product.gallery = [product.gallery];
+                            }
+                        } else if (!Array.isArray(product.gallery)) {
+                            product.gallery = [];
+                        }
+                        
+                        products.push(product);
+                    }
+                }
+            } catch (err) {
+                console.log(`Product file ${file} not found, skipping`);
+            }
+        }
+        
+        // Try an extended range of common naming patterns for new products
+        const commonPrefixes = ['new-', 'latest-', 'featured-', 'special-', 'designer-', 'premium-', 'exclusive-', 'limited-', 'trending-', 'bestseller-'];
+        const commonSuffixes = ['saree', 'kurti', 'blouse', 'dress', 'suit', 'lehenga', 'anarkali', 'sharara', 'palazzo', 'dupatta'];
+        const commonColors = ['red', 'blue', 'green', 'pink', 'yellow', 'black', 'white', 'purple', 'orange', 'golden'];
+        const commonPatterns = ['floral', 'geometric', 'printed', 'embroidered', 'plain', 'striped', 'dotted'];
+        
+        // Try prefix-suffix combinations
+        for (const prefix of commonPrefixes) {
+            for (const suffix of commonSuffixes) {
+                const filename = `${prefix}${suffix}.md`;
+                if (!potentialFiles.includes(filename)) {
+                    await tryFetchProduct(filename, products);
+                }
+            }
+        }
+        
+        // Try color-suffix combinations
+        for (const color of commonColors) {
+            for (const suffix of commonSuffixes) {
+                const filename = `${color}-${suffix}.md`;
+                if (!potentialFiles.includes(filename)) {
+                    await tryFetchProduct(filename, products);
+                }
+            }
+        }
+        
+        // Try pattern-suffix combinations
+        for (const pattern of commonPatterns) {
+            for (const suffix of commonSuffixes) {
+                const filename = `${pattern}-${suffix}.md`;
+                if (!potentialFiles.includes(filename)) {
+                    await tryFetchProduct(filename, products);
+                }
+            }
+        }
+        
+        // Try some common product names that might be added
+        const commonProductNames = [
+            'traditional-saree', 'modern-kurti', 'party-wear-blouse',
+            'casual-dress', 'formal-suit', 'wedding-lehenga',
+            'cotton-kurti', 'silk-saree', 'chiffon-dress',
+            'handloom-saree', 'block-print-kurti', 'mirror-work-blouse',
+            'bandhani-saree', 'kalamkari-kurti', 'zari-work-blouse'
+        ];
+        
+        for (const productName of commonProductNames) {
+            const filename = `${productName}.md`;
+            if (!potentialFiles.includes(filename)) {
+                await tryFetchProduct(filename, products);
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error fetching products:', error);
     }
     
     return products;
+}
+
+// Helper function to try fetching a product file
+async function tryFetchProduct(filename, products) {
+    try {
+        const response = await fetch(`/content/products/${filename}`);
+        if (response.ok) {
+            const text = await response.text();
+            const product = parseFrontMatter(text);
+            if (product.title && !product.draft) {
+                product.slug = filename.replace('.md', '');
+                
+                // Process gallery images
+                if (product.gallery && typeof product.gallery === 'string') {
+                    try {
+                        product.gallery = JSON.parse(product.gallery);
+                    } catch (e) {
+                        product.gallery = [product.gallery];
+                    }
+                } else if (!Array.isArray(product.gallery)) {
+                    product.gallery = [];
+                }
+                
+                products.push(product);
+            }
+        }
+    } catch (err) {
+        // Silently skip non-existent files
+    }
 }
 
 // Parse front matter from markdown files
@@ -138,12 +279,45 @@ function parseFrontMatter(content) {
     
     const data = {};
     const lines = frontMatter.split('\n');
+    let currentArray = null;
+    let currentKey = null;
     
-    for (const line of lines) {
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        // Skip empty lines
+        if (!line) continue;
+        
+        // Handle array items (lines starting with -)
+        if (line.startsWith('- ')) {
+            if (currentArray && currentKey) {
+                let arrayValue = line.substring(2).trim();
+                // Remove quotes if present
+                if ((arrayValue.startsWith('"') && arrayValue.endsWith('"')) || 
+                    (arrayValue.startsWith("'") && arrayValue.endsWith("'"))) {
+                    arrayValue = arrayValue.slice(1, -1);
+                }
+                currentArray.push(arrayValue);
+            }
+            continue;
+        }
+        
         const colonIndex = line.indexOf(':');
         if (colonIndex > 0) {
             const key = line.substring(0, colonIndex).trim();
             let value = line.substring(colonIndex + 1).trim();
+            
+            // Check if this is an array field (value is empty or contains array indicator)
+            if (!value || value === '[]' || (i + 1 < lines.length && lines[i + 1].trim().startsWith('- '))) {
+                currentArray = [];
+                currentKey = key;
+                data[key] = currentArray;
+                continue;
+            } else {
+                // Reset array tracking for regular fields
+                currentArray = null;
+                currentKey = null;
+            }
             
             // Remove quotes if present
             if ((value.startsWith('"') && value.endsWith('"')) || 

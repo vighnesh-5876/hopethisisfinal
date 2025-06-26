@@ -137,7 +137,7 @@ function createProductGallery(product) {
     if (validImages.length === 1) {
         return `
             <div class="product-detail-image">
-                <img src="${validImages[0]}" alt="${product.title}" class="img-fluid w-100" style="height: 400px; object-fit: cover; border-radius: 15px;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg=='">
+                <img src="${validImages[0]}" alt="${product.title}" class="img-fluid w-100" style="height: 400px; object-fit: contain; object-position: center; border-radius: 15px; background-color: #f8f9fa;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg=='">
             </div>
         `;
     }
@@ -163,6 +163,7 @@ function createProductGallery(product) {
                 </div>
                 <div class="swiper-button-next"></div>
                 <div class="swiper-button-prev"></div>
+                <div class="swiper-pagination"></div>
             </div>
             <div class="swiper product-thumbnails mt-3">
                 <div class="swiper-wrapper">
@@ -194,47 +195,78 @@ function createTagsHTML(tags) {
 
 // Initialize image carousel
 function initializeCarousel() {
-    // Initialize thumbnail carousel first
-    const thumbnailSwiper = new Swiper('.product-thumbnails', {
-        spaceBetween: 10,
-        slidesPerView: 'auto',
-        freeMode: true,
-        watchSlidesProgress: true,
-        breakpoints: {
-            320: { slidesPerView: 3 },
-            640: { slidesPerView: 4 },
-            768: { slidesPerView: 5 },
-            1024: { slidesPerView: 6 }
-        }
-    });
+    // Wait for DOM to be fully loaded
+    setTimeout(() => {
+        const mainCarouselEl = document.querySelector('.main-carousel');
+        const thumbnailCarouselEl = document.querySelector('.product-thumbnails');
+        
+        if (!mainCarouselEl) return;
 
-    // Initialize main carousel
-    const mainSwiper = new Swiper('.main-carousel', {
-        spaceBetween: 10,
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-        },
-        thumbs: {
-            swiper: thumbnailSwiper,
-        },
-        on: {
-            slideChange: function() {
-                // Update counter
-                const counter = document.querySelector('.current-slide');
-                if (counter) {
-                    counter.textContent = this.activeIndex + 1;
+        let thumbnailSwiper = null;
+        
+        // Initialize thumbnail carousel first if it exists
+        if (thumbnailCarouselEl) {
+            thumbnailSwiper = new Swiper('.product-thumbnails', {
+                spaceBetween: 10,
+                slidesPerView: 'auto',
+                freeMode: true,
+                watchSlidesProgress: true,
+                breakpoints: {
+                    320: { slidesPerView: 3 },
+                    640: { slidesPerView: 4 },
+                    768: { slidesPerView: 5 },
+                    1024: { slidesPerView: 6 }
+                }
+            });
+        }
+
+        // Initialize main carousel
+        const mainSwiper = new Swiper('.main-carousel', {
+            spaceBetween: 10,
+            loop: false,
+            centeredSlides: true,
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+                dynamicBullets: true,
+            },
+            thumbs: thumbnailSwiper ? {
+                swiper: thumbnailSwiper,
+            } : undefined,
+            keyboard: {
+                enabled: true,
+            },
+            mousewheel: {
+                forceToAxis: true,
+            },
+            on: {
+                slideChange: function() {
+                    // Update counter
+                    const counter = document.querySelector('.current-slide');
+                    if (counter) {
+                        counter.textContent = this.activeIndex + 1;
+                    }
                 }
             }
-        }
-    });
-
-    // Add click handlers for thumbnails
-    document.querySelectorAll('.thumbnail-slide').forEach((thumb, index) => {
-        thumb.addEventListener('click', () => {
-            mainSwiper.slideTo(index);
         });
-    });
+
+        // Add click handlers for thumbnails
+        document.querySelectorAll('.thumbnail-slide').forEach((thumb, index) => {
+            thumb.addEventListener('click', () => {
+                mainSwiper.slideTo(index);
+            });
+        });
+        
+        // Store carousel instances globally for potential cleanup
+        window.productCarousels = {
+            main: mainSwiper,
+            thumbnail: thumbnailSwiper
+        };
+    }, 100);
 }
 
 // Setup purchase buttons

@@ -1,7 +1,7 @@
-Provide tools and instructions to sync product data with the live site
+Enhance product images and dynamically update products on the website
 
-Adds HTML pages to check and export product data, and a markdown guide for manual Git setup.
+Implements a carousel for multiple product images, improves image fitting, and adds auto-refresh for new products via `swiper.js` and `fetchProductsFromDirectory()`.
 
 Replit-Commit-Author: Agent
-Replit-Commit-Session-Id: 1f005202-ec3b-4933-977b-fe34dbac8694
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/b7450229-1b89-460b-a9a2-d2a144d1d894/b5bc3277-a285-4c3a-8837-f3b38afb9484.jpg
+Replit-Commit-Session-Id: c3f81ff5-d56e-49f2-b672-81fd9255c186
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/b2ce4d04-aa8a-4f0c-9272-c62faa9aaf79/dfc3b72b-b7da-471e-98a7-624307bf009e.jpg
