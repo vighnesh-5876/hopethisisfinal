@@ -1,7 +1,7 @@
-Show products added via the admin panel on the website
+Improve product loading and display on the website for better user experience
 
-Improves product fetching logic by parsing the directory listing for `.md` files and adds `admin-test-product.md`.
+Adds debugging tools and logging to troubleshoot product loading issues in js/main.js and introduces debug-products.html.
 
 Replit-Commit-Author: Agent
 Replit-Commit-Session-Id: c3f81ff5-d56e-49f2-b672-81fd9255c186
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/b2ce4d04-aa8a-4f0c-9272-c62faa9aaf79/7183c63f-50a6-454d-b412-4efcf00ca928.jpg
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/b2ce4d04-aa8a-4f0c-9272-c62faa9aaf79/df66c714-a836-4ae3-bc45-63f346c84460.jpg

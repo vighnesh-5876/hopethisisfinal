@@ -164,6 +164,13 @@ async function fetchProductsFromDirectory() {
                 if (response.ok) {
                     const text = await response.text();
                     const product = parseFrontMatter(text);
+                    console.log(`Parsing ${file}:`, {
+                        title: product.title,
+                        draft: product.draft,
+                        hasTitle: !!product.title,
+                        isDraft: !!product.draft
+                    });
+                    
                     if (product.title && !product.draft) {
                         // Add filename for URL generation
                         product.slug = file.replace('.md', '');
@@ -182,6 +189,9 @@ async function fetchProductsFromDirectory() {
                         }
                         
                         products.push(product);
+                        console.log(`Added product: ${product.title}`);
+                    } else {
+                        console.log(`Skipping ${file}: ${!product.title ? 'no title' : 'is draft'}`);
                     }
                 }
             } catch (err) {
@@ -231,66 +241,79 @@ async function tryFetchProduct(filename, products) {
 // Parse front matter from markdown files
 function parseFrontMatter(content) {
     const match = content.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
-    if (!match) return {};
+    if (!match) {
+        console.log('No frontmatter found in content');
+        return {};
+    }
     
     const frontMatter = match[1];
     const body = match[2];
+    
+    console.log('Parsing frontmatter:', frontMatter.substring(0, 200) + '...');
     
     const data = {};
     const lines = frontMatter.split('\n');
     let currentArray = null;
     let currentKey = null;
     
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        
-        // Skip empty lines
-        if (!line) continue;
-        
-        // Handle array items (lines starting with -)
-        if (line.startsWith('- ')) {
-            if (currentArray && currentKey) {
-                let arrayValue = line.substring(2).trim();
-                // Remove quotes if present
-                if ((arrayValue.startsWith('"') && arrayValue.endsWith('"')) || 
-                    (arrayValue.startsWith("'") && arrayValue.endsWith("'"))) {
-                    arrayValue = arrayValue.slice(1, -1);
+    try {
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            
+            // Skip empty lines
+            if (!line) continue;
+            
+            // Handle array items (lines starting with -)
+            if (line.startsWith('- ')) {
+                if (currentArray && currentKey) {
+                    let arrayValue = line.substring(2).trim();
+                    // Remove quotes if present
+                    if ((arrayValue.startsWith('"') && arrayValue.endsWith('"')) || 
+                        (arrayValue.startsWith("'") && arrayValue.endsWith("'"))) {
+                        arrayValue = arrayValue.slice(1, -1);
+                    }
+                    currentArray.push(arrayValue);
                 }
-                currentArray.push(arrayValue);
+                continue;
             }
-            continue;
+            
+            const colonIndex = line.indexOf(':');
+            if (colonIndex > 0) {
+                const key = line.substring(0, colonIndex).trim();
+                let value = line.substring(colonIndex + 1).trim();
+                
+                // Check if this is an array field (value is empty or contains array indicator)
+                if (!value || value === '[]' || (i + 1 < lines.length && lines[i + 1].trim().startsWith('- '))) {
+                    currentArray = [];
+                    currentKey = key;
+                    data[key] = currentArray;
+                    continue;
+                } else {
+                    // Reset array tracking for regular fields
+                    currentArray = null;
+                    currentKey = null;
+                }
+                
+                // Remove quotes if present
+                if ((value.startsWith('"') && value.endsWith('"')) || 
+                    (value.startsWith("'") && value.endsWith("'"))) {
+                    value = value.slice(1, -1);
+                }
+                
+                // Parse booleans and numbers
+                if (value === 'true') value = true;
+                else if (value === 'false') value = false;
+                else if (!isNaN(value) && value !== '') value = Number(value);
+                
+                data[key] = value;
+            }
         }
         
-        const colonIndex = line.indexOf(':');
-        if (colonIndex > 0) {
-            const key = line.substring(0, colonIndex).trim();
-            let value = line.substring(colonIndex + 1).trim();
-            
-            // Check if this is an array field (value is empty or contains array indicator)
-            if (!value || value === '[]' || (i + 1 < lines.length && lines[i + 1].trim().startsWith('- '))) {
-                currentArray = [];
-                currentKey = key;
-                data[key] = currentArray;
-                continue;
-            } else {
-                // Reset array tracking for regular fields
-                currentArray = null;
-                currentKey = null;
-            }
-            
-            // Remove quotes if present
-            if ((value.startsWith('"') && value.endsWith('"')) || 
-                (value.startsWith("'") && value.endsWith("'"))) {
-                value = value.slice(1, -1);
-            }
-            
-            // Parse booleans and numbers
-            if (value === 'true') value = true;
-            else if (value === 'false') value = false;
-            else if (!isNaN(value) && value !== '') value = Number(value);
-            
-            data[key] = value;
-        }
+        console.log('Parsed data:', data);
+        
+    } catch (error) {
+        console.error('Error parsing frontmatter:', error);
+        return {};
     }
     
     if (body) data.body = body.trim();
@@ -302,7 +325,11 @@ function displayProducts() {
     const productsGrid = document.getElementById('products-grid');
     if (!productsGrid) return;
 
+    console.log(`Displaying products: ${productsData.length} products loaded`);
+    console.log('Products data:', productsData.map(p => ({title: p.title, slug: p.slug, draft: p.draft})));
+
     if (productsData.length === 0) {
+        console.log('No products to display, showing no products message');
         showNoProductsMessage();
         return;
     }
