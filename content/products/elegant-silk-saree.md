@@ -1,21 +1,23 @@
 ---
-title: "Elegant Silk Saree"
-description: "Beautiful handwoven silk saree with intricate golden border work. Perfect for weddings and special occasions. Made from premium quality silk with traditional craftsmanship."
-price: 4500
-category: "sarees"
-available: true
+title: Elegant Silk Saree
+description: Beautiful handwoven silk saree with intricate golden border work.
+  Perfect for weddings and special occasions. Made from premium quality silk
+  with traditional craftsmanship.
+price: 501
+category: sarees
+available: false
 featured: true
-image: "/static/uploads/silk-saree-1.svg"
-gallery: 
-  - "/static/uploads/silk-saree-1.svg"
-  - "/static/uploads/silk-saree-2.svg"
-tags: 
-  - "silk"
-  - "handwoven"
-  - "traditional"
-  - "wedding"
-  - "premium"
-date: "2025-06-25T10:00:00.000Z"
+image: /static/uploads/silk-saree-1.svg
+gallery:
+  - /static/uploads/silk-saree-1.svg
+  - /static/uploads/silk-saree-2.svg
+tags:
+  - silk
+  - handwoven
+  - traditional
+  - wedding
+  - premium
+date: 2025-06-25T10:00:00.000Z
 draft: false
 ---
 
