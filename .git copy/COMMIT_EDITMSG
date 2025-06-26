@@ -1,7 +1,7 @@
-Enhance product images and dynamically update products on the website
+Enhance website with new footer, legal pages, and optimized product loading
 
-Implements a carousel for multiple product images, improves image fitting, and adds auto-refresh for new products via `swiper.js` and `fetchProductsFromDirectory()`.
+Implements a redesigned footer in CSS and HTML, adds Privacy Policy, Terms & Conditions, and Return Policy pages, and improves product loading in main.js.
 
 Replit-Commit-Author: Agent
 Replit-Commit-Session-Id: c3f81ff5-d56e-49f2-b672-81fd9255c186
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/b2ce4d04-aa8a-4f0c-9272-c62faa9aaf79/dfc3b72b-b7da-471e-98a7-624307bf009e.jpg
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/b2ce4d04-aa8a-4f0c-9272-c62faa9aaf79/8991096b-1e36-452b-a0ac-9e077e83fb37.jpg
