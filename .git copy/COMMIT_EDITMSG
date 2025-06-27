@@ -1,7 +1,7 @@
-Dynamically display newly added fashion items automatically on the site
+Display new products added via admin panel without manually updating index
 
-Load products dynamically by fetching a products/index.json file and generate it automatically using a Node.js script.
+Implements dynamic product discovery by scanning the `/content/products/` directory and updating `index.json` in `js/main.js`.
 
 Replit-Commit-Author: Agent
-Replit-Commit-Session-Id: c3f81ff5-d56e-49f2-b672-81fd9255c186
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/b2ce4d04-aa8a-4f0c-9272-c62faa9aaf79/24af4a27-fef4-4c10-b7fa-603344af68b5.jpg
+Replit-Commit-Session-Id: 350ca4e4-9ee9-4cf7-97ee-4136540d52ac
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/2938af96-10c4-430f-8359-cde93a52927e/6adeebf6-812b-4a71-bcdf-215a43ae1d24.jpg

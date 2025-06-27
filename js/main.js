@@ -124,6 +124,19 @@ async function fetchProductsFromDirectory() {
                 const indexData = await indexResponse.json();
                 productFiles = indexData.products || [];
                 console.log('Using products index.json:', productFiles);
+                
+                // Check for any additional products not in the index
+                try {
+                    const allProducts = await scanForAllProducts();
+                    const newProducts = allProducts.filter(file => !productFiles.includes(file));
+                    if (newProducts.length > 0) {
+                        console.log(`Found ${newProducts.length} new products not in index:`, newProducts);
+                        productFiles = [...productFiles, ...newProducts];
+                        console.log('Updated product list:', productFiles);
+                    }
+                } catch (scanError) {
+                    console.log('Could not scan for additional products:', scanError);
+                }
             } else {
                 throw new Error('index.json not found');
             }
@@ -212,6 +225,24 @@ async function fetchProductsFromDirectory() {
     }
     
     return products;
+}
+
+// Helper function to scan for all product files in the directory
+async function scanForAllProducts() {
+    try {
+        const dirResponse = await fetch('/content/products/');
+        if (dirResponse.ok) {
+            const indexText = await dirResponse.text();
+            const matches = indexText.match(/href="([^"]*\.md)"/g);
+            if (matches) {
+                return matches.map(match => match.match(/href="([^"]*)"/)[1])
+                    .filter(file => file.endsWith('.md') && !file.includes('/') && file !== '.gitkeep');
+            }
+        }
+    } catch (error) {
+        console.log('Could not scan directory for products:', error);
+    }
+    return [];
 }
 
 // Helper function to try fetching a product file
