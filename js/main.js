@@ -110,102 +110,14 @@ async function loadProducts() {
     }
 }
 
-// Fetch products by scanning directory directly (no index.json dependency)
+// Fetch products by testing potential filenames directly
 async function fetchProductsFromDirectory() {
     const products = [];
-    let productFiles = [];
     
-    console.log('Starting direct directory scan for products...');
+    console.log('Starting direct product discovery...');
     
-    try {
-        // Method 1: Direct directory listing scan
-        const dirResponse = await fetch('/content/products/');
-        if (dirResponse.ok) {
-            const indexText = await dirResponse.text();
-            console.log('Directory listing successful, parsing for .md files');
-            
-            // Parse HTML directory listing to find .md files
-            const matches = indexText.match(/href="([^"]*\.md)"/g);
-            if (matches) {
-                productFiles = matches.map(match => match.match(/href="([^"]*)"/)[1])
-                    .filter(file => file.endsWith('.md') && !file.includes('/') && file !== '.gitkeep');
-                
-                console.log(`Found ${productFiles.length} product files via directory scan:`, productFiles);
-            } else {
-                console.log('No .md files found in directory listing HTML');
-            }
-        } else {
-            console.log('Directory listing failed, trying alternative discovery...');
-            throw new Error('Directory listing not available');
-        }
-        
-        // Method 2: If directory scan failed, try systematic product discovery
-        if (productFiles.length === 0) {
-            console.log('Attempting systematic product discovery...');
-            productFiles = await discoverProductsByPattern();
-        }
-    } catch (dirError) {
-        console.log('Directory scanning failed, using systematic discovery:', dirError.message);
-        productFiles = await discoverProductsByPattern();
-    }
-    
-    // Try to fetch each product file
-    console.log(`Attempting to load ${productFiles.length} product files...`);
-    for (const file of productFiles) {
-        try {
-            const response = await fetch(`/content/products/${file}`);
-            if (response.ok) {
-                const text = await response.text();
-                const product = parseFrontMatter(text);
-                console.log(`Checking product ${file}:`, {
-                    hasTitle: !!product.title,
-                    title: product.title,
-                    isDraft: !!product.draft,
-                    draft: product.draft,
-                    willAdd: !!(product.title && !product.draft)
-                });
-                
-                if (product.title && !product.draft) {
-                    // Add filename for URL generation
-                    product.slug = file.replace('.md', '');
-                    
-                    // Process gallery images array properly
-                    if (product.gallery && typeof product.gallery === 'string') {
-                        // Handle case where gallery is stored as a string in YAML
-                        try {
-                            product.gallery = JSON.parse(product.gallery);
-                        } catch (e) {
-                            // If it's not JSON, treat as single item array
-                            product.gallery = [product.gallery];
-                        }
-                    } else if (!Array.isArray(product.gallery)) {
-                        product.gallery = [];
-                    }
-                    
-                    products.push(product);
-                    console.log(`✓ Added product: ${product.title}`);
-                } else {
-                    console.log(`✗ Skipping ${file}: ${!product.title ? 'no title' : 'is draft'}`);
-                }
-            }
-        } catch (err) {
-            console.log(`Product file ${file} not found, skipping`);
-        }
-    }
-    
-    console.log(`Final products summary: ${products.length} products loaded`);
-    console.log('Product titles:', products.map(p => p.title));
-    
-    return products;
-}
-
-// Systematic product discovery by testing common patterns
-async function discoverProductsByPattern() {
-    console.log('Starting systematic product discovery...');
-    const discoveredFiles = [];
-    
-    // Common patterns and known products to test
-    const testPatterns = [
+    // List of known and potential product filenames to test
+    const potentialProducts = [
         // Known existing products
         'admin-test-product.md',
         'designer-cotton-kurti.md',
@@ -217,25 +129,64 @@ async function discoverProductsByPattern() {
         'test-multi-image-saree.md',
         'new-admin-product.md',
         
-        // Common admin-generated patterns
-        'product-1.md', 'product-2.md', 'product-3.md',
-        'saree-1.md', 'kurti-1.md', 'blouse-1.md',
-        'admin-product-1.md', 'admin-product-2.md',
-        'new-product.md', 'latest-product.md'
+        // Common admin-generated patterns that Netlify CMS might create
+        'product-1.md', 'product-2.md', 'product-3.md', 'product-4.md', 'product-5.md',
+        'saree-1.md', 'saree-2.md', 'saree-3.md',
+        'kurti-1.md', 'kurti-2.md', 'kurti-3.md',
+        'blouse-1.md', 'blouse-2.md', 'blouse-3.md',
+        'new-product.md', 'latest-product.md',
+        'admin-product-1.md', 'admin-product-2.md', 'admin-product-3.md',
+        
+        // Date-based patterns
+        '2025-06-27-product.md', '2025-06-26-product.md', '2025-06-25-product.md',
+        
+        // Common CMS slug patterns
+        'my-product.md', 'beautiful-saree.md', 'elegant-kurti.md', 'designer-blouse.md',
+        'traditional-wear.md', 'ethnic-collection.md', 'festive-wear.md'
     ];
     
-    console.log(`Testing ${testPatterns.length} potential product files...`);
+    console.log(`Testing ${potentialProducts.length} potential product files...`);
     
-    // Test each potential filename
-    for (const filename of testPatterns) {
+    // Test each potential product file directly
+    for (const filename of potentialProducts) {
         try {
+            console.log(`Testing: ${filename}`);
             const response = await fetch(`/content/products/${filename}`);
             if (response.ok) {
-                const content = await response.text();
+                const text = await response.text();
+                
                 // Verify it's a valid product file with frontmatter
-                if (content.includes('---') && content.includes('title:')) {
-                    discoveredFiles.push(filename);
-                    console.log(`✓ Found: ${filename}`);
+                if (text.includes('---') && text.includes('title:')) {
+                    const product = parseFrontMatter(text);
+                    
+                    console.log(`Found valid product ${filename}:`, {
+                        title: product.title,
+                        draft: product.draft,
+                        willAdd: !!(product.title && !product.draft)
+                    });
+                    
+                    if (product.title && !product.draft) {
+                        // Add filename for URL generation
+                        product.slug = filename.replace('.md', '');
+                        
+                        // Process gallery images array properly
+                        if (product.gallery && typeof product.gallery === 'string') {
+                            try {
+                                product.gallery = JSON.parse(product.gallery);
+                            } catch (e) {
+                                product.gallery = [product.gallery];
+                            }
+                        } else if (!Array.isArray(product.gallery)) {
+                            product.gallery = [];
+                        }
+                        
+                        products.push(product);
+                        console.log(`✓ Added product: ${product.title} (from ${filename})`);
+                    } else {
+                        console.log(`✗ Skipping ${filename}: ${!product.title ? 'no title' : 'is draft'}`);
+                    }
+                } else {
+                    console.log(`${filename} is not a valid product file`);
                 }
             }
         } catch (error) {
@@ -243,9 +194,13 @@ async function discoverProductsByPattern() {
         }
     }
     
-    console.log(`Discovery complete: Found ${discoveredFiles.length} product files`);
-    return discoveredFiles;
+    console.log(`Final products summary: ${products.length} products loaded`);
+    console.log('Product titles:', products.map(p => p.title));
+    
+    return products;
 }
+
+
 
 // Helper function to try fetching a product file
 async function tryFetchProduct(filename, products) {
