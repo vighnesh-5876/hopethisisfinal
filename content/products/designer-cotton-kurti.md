@@ -1,21 +1,23 @@
 ---
-title: "Designer Cotton Kurti"
-description: "Stylish cotton kurti with modern prints and comfortable fit. Perfect for casual wear and office settings. Features three-quarter sleeves and elegant neckline design."
+title: Designer Cotton Kurti
+description: Stylish cotton kurti with modern prints and comfortable fit.
+  Perfect for casual wear and office settings. Features three-quarter sleeves
+  and elegant neckline design.
 price: 1200
-category: "kurtis"
-available: true
+category: kurtis
+available: false
 featured: true
-image: "/static/uploads/cotton-kurti-1.svg"
-gallery: 
-  - "/static/uploads/cotton-kurti-1.svg"
-  - "/static/uploads/cotton-kurti-2.svg"
-tags: 
-  - "cotton"
-  - "casual"
-  - "office wear"
-  - "comfortable"
-  - "modern"
-date: "2025-06-25T09:30:00.000Z"
+image: /static/uploads/cotton-kurti-1.svg
+gallery:
+  - /static/uploads/cotton-kurti-1.svg
+  - /static/uploads/cotton-kurti-2.svg
+tags:
+  - cotton
+  - casual
+  - office wear
+  - comfortable
+  - modern
+date: 2025-06-25T09:30:00.000Z
 draft: false
 ---
 
