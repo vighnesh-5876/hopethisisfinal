@@ -1,7 +1,7 @@
-Improve product loading and display by checking for title and draft status
+Load products directly from the website, without needing the index file
 
-Adds enhanced logging and validation to the product loading function in main.js.
+Refactor product loading to fetch .md files by scanning the /content/products/ directory instead of relying on index.json.
 
 Replit-Commit-Author: Agent
 Replit-Commit-Session-Id: 350ca4e4-9ee9-4cf7-97ee-4136540d52ac
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/2938af96-10c4-430f-8359-cde93a52927e/1dd4bf32-bfc7-4239-af77-2ecdaffd4bd7.jpg
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/2938af96-10c4-430f-8359-cde93a52927e/8776c674-34b2-4f4d-973a-2dbf2cdc2382.jpg

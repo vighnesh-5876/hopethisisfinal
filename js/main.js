@@ -110,119 +110,87 @@ async function loadProducts() {
     }
 }
 
-// Fetch products from content directory
+// Fetch products by scanning directory directly (no index.json dependency)
 async function fetchProductsFromDirectory() {
     const products = [];
+    let productFiles = [];
+    
+    console.log('Starting direct directory scan for products...');
     
     try {
-        let productFiles = [];
-        
-        // Try to fetch products index file first (for deployment)
-        try {
-            const indexResponse = await fetch('/content/products/index.json');
-            if (indexResponse.ok) {
-                const indexData = await indexResponse.json();
-                productFiles = indexData.products || [];
-                console.log('Using products index.json:', productFiles);
-                
-                // Check for any additional products not in the index
-                try {
-                    const allProducts = await scanForAllProducts();
-                    const newProducts = allProducts.filter(file => !productFiles.includes(file));
-                    if (newProducts.length > 0) {
-                        console.log(`Found ${newProducts.length} new products not in index:`, newProducts);
-                        productFiles = [...productFiles, ...newProducts];
-                        console.log('Updated product list:', productFiles);
-                    }
-                } catch (scanError) {
-                    console.log('Could not scan for additional products:', scanError);
-                }
-            } else {
-                throw new Error('index.json not found');
-            }
-        } catch (indexError) {
-            console.log('Products index.json not available, trying directory listing');
+        // Method 1: Direct directory listing scan
+        const dirResponse = await fetch('/content/products/');
+        if (dirResponse.ok) {
+            const indexText = await dirResponse.text();
+            console.log('Directory listing successful, parsing for .md files');
             
-            // Fallback to directory listing (for development)
-            try {
-                const dirResponse = await fetch('/content/products/');
-                if (dirResponse.ok) {
-                    const indexText = await dirResponse.text();
-                    console.log('Directory listing available, parsing for .md files');
-                    
-                    // Parse HTML directory listing to find .md files
-                    const matches = indexText.match(/href="([^"]*\.md)"/g);
-                    if (matches) {
-                        productFiles = matches.map(match => match.match(/href="([^"]*)"/)[1])
-                            .filter(file => file.endsWith('.md') && !file.includes('/') && file !== '.gitkeep');
-                        
-                        console.log('Found .md files in directory:', productFiles);
-                    }
-                }
-            } catch (dirError) {
-                console.log('Directory listing not available, using fallback list');
-                // Ultimate fallback with known files
-                productFiles = [
-                    'elegant-silk-saree.md',
-                    'designer-cotton-kurti.md', 
-                    'embroidered-blouse.md',
-                    'festive-georgette-saree.md',
-                    'ethnic-printed-kurti.md',
-                    'silk-designer-blouse.md',
-                    'test-multi-image-saree.md',
-                    'admin-test-product.md'
-                ];
+            // Parse HTML directory listing to find .md files
+            const matches = indexText.match(/href="([^"]*\.md)"/g);
+            if (matches) {
+                productFiles = matches.map(match => match.match(/href="([^"]*)"/)[1])
+                    .filter(file => file.endsWith('.md') && !file.includes('/') && file !== '.gitkeep');
+                
+                console.log(`Found ${productFiles.length} product files via directory scan:`, productFiles);
+            } else {
+                console.log('No .md files found in directory listing HTML');
             }
+        } else {
+            console.log('Directory listing failed, trying alternative discovery...');
+            throw new Error('Directory listing not available');
         }
         
-        // Try to fetch each product file
-        for (const file of productFiles) {
-            try {
-                const response = await fetch(`/content/products/${file}`);
-                if (response.ok) {
-                    const text = await response.text();
-                    const product = parseFrontMatter(text);
-                    console.log(`Checking product ${file}:`, {
-                        hasTitle: !!product.title,
-                        title: product.title,
-                        isDraft: !!product.draft,
-                        draft: product.draft,
-                        willAdd: !!(product.title && !product.draft)
-                    });
+        // Method 2: If directory scan failed, try systematic product discovery
+        if (productFiles.length === 0) {
+            console.log('Attempting systematic product discovery...');
+            productFiles = await discoverProductsByPattern();
+        }
+    } catch (dirError) {
+        console.log('Directory scanning failed, using systematic discovery:', dirError.message);
+        productFiles = await discoverProductsByPattern();
+    }
+    
+    // Try to fetch each product file
+    console.log(`Attempting to load ${productFiles.length} product files...`);
+    for (const file of productFiles) {
+        try {
+            const response = await fetch(`/content/products/${file}`);
+            if (response.ok) {
+                const text = await response.text();
+                const product = parseFrontMatter(text);
+                console.log(`Checking product ${file}:`, {
+                    hasTitle: !!product.title,
+                    title: product.title,
+                    isDraft: !!product.draft,
+                    draft: product.draft,
+                    willAdd: !!(product.title && !product.draft)
+                });
+                
+                if (product.title && !product.draft) {
+                    // Add filename for URL generation
+                    product.slug = file.replace('.md', '');
                     
-                    if (product.title && !product.draft) {
-                        // Add filename for URL generation
-                        product.slug = file.replace('.md', '');
-                        
-                        // Process gallery images array properly
-                        if (product.gallery && typeof product.gallery === 'string') {
-                            // Handle case where gallery is stored as a string in YAML
-                            try {
-                                product.gallery = JSON.parse(product.gallery);
-                            } catch (e) {
-                                // If it's not JSON, treat as single item array
-                                product.gallery = [product.gallery];
-                            }
-                        } else if (!Array.isArray(product.gallery)) {
-                            product.gallery = [];
+                    // Process gallery images array properly
+                    if (product.gallery && typeof product.gallery === 'string') {
+                        // Handle case where gallery is stored as a string in YAML
+                        try {
+                            product.gallery = JSON.parse(product.gallery);
+                        } catch (e) {
+                            // If it's not JSON, treat as single item array
+                            product.gallery = [product.gallery];
                         }
-                        
-                        products.push(product);
-                        console.log(`✓ Added product: ${product.title}`);
-                    } else {
-                        console.log(`✗ Skipping ${file}: ${!product.title ? 'no title' : 'is draft'}`);
+                    } else if (!Array.isArray(product.gallery)) {
+                        product.gallery = [];
                     }
+                    
+                    products.push(product);
+                    console.log(`✓ Added product: ${product.title}`);
+                } else {
+                    console.log(`✗ Skipping ${file}: ${!product.title ? 'no title' : 'is draft'}`);
                 }
-            } catch (err) {
-                console.log(`Product file ${file} not found, skipping`);
             }
+        } catch (err) {
+            console.log(`Product file ${file} not found, skipping`);
         }
-        
-        // For new products added via admin panel, we rely on the directory listing
-        // No need to scan for hypothetical files that cause 404 errors
-        
-    } catch (error) {
-        console.error('Error fetching products:', error);
     }
     
     console.log(`Final products summary: ${products.length} products loaded`);
@@ -231,22 +199,52 @@ async function fetchProductsFromDirectory() {
     return products;
 }
 
-// Helper function to scan for all product files in the directory
-async function scanForAllProducts() {
-    try {
-        const dirResponse = await fetch('/content/products/');
-        if (dirResponse.ok) {
-            const indexText = await dirResponse.text();
-            const matches = indexText.match(/href="([^"]*\.md)"/g);
-            if (matches) {
-                return matches.map(match => match.match(/href="([^"]*)"/)[1])
-                    .filter(file => file.endsWith('.md') && !file.includes('/') && file !== '.gitkeep');
+// Systematic product discovery by testing common patterns
+async function discoverProductsByPattern() {
+    console.log('Starting systematic product discovery...');
+    const discoveredFiles = [];
+    
+    // Common patterns and known products to test
+    const testPatterns = [
+        // Known existing products
+        'admin-test-product.md',
+        'designer-cotton-kurti.md',
+        'elegant-silk-saree.md',
+        'embroidered-blouse.md',
+        'ethnic-printed-kurti.md',
+        'festive-georgette-saree.md',
+        'silk-designer-blouse.md',
+        'test-multi-image-saree.md',
+        'new-admin-product.md',
+        
+        // Common admin-generated patterns
+        'product-1.md', 'product-2.md', 'product-3.md',
+        'saree-1.md', 'kurti-1.md', 'blouse-1.md',
+        'admin-product-1.md', 'admin-product-2.md',
+        'new-product.md', 'latest-product.md'
+    ];
+    
+    console.log(`Testing ${testPatterns.length} potential product files...`);
+    
+    // Test each potential filename
+    for (const filename of testPatterns) {
+        try {
+            const response = await fetch(`/content/products/${filename}`);
+            if (response.ok) {
+                const content = await response.text();
+                // Verify it's a valid product file with frontmatter
+                if (content.includes('---') && content.includes('title:')) {
+                    discoveredFiles.push(filename);
+                    console.log(`✓ Found: ${filename}`);
+                }
             }
+        } catch (error) {
+            // Silently skip non-existent files
         }
-    } catch (error) {
-        console.log('Could not scan directory for products:', error);
     }
-    return [];
+    
+    console.log(`Discovery complete: Found ${discoveredFiles.length} product files`);
+    return discoveredFiles;
 }
 
 // Helper function to try fetching a product file
