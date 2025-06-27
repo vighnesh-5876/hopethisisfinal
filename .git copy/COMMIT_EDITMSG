@@ -1,7 +1,7 @@
-Add new product to the storefront so customers can now view and purchase it
+Improve product loading and display by checking for title and draft status
 
-Update product index JSON to include "new-admin-product.md" and increment product count.
+Adds enhanced logging and validation to the product loading function in main.js.
 
 Replit-Commit-Author: Agent
 Replit-Commit-Session-Id: 350ca4e4-9ee9-4cf7-97ee-4136540d52ac
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/2938af96-10c4-430f-8359-cde93a52927e/69a4ddd1-1ef2-438f-9496-c094447cecef.jpg
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/2938af96-10c4-430f-8359-cde93a52927e/1dd4bf32-bfc7-4239-af77-2ecdaffd4bd7.jpg

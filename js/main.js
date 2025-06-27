@@ -182,11 +182,12 @@ async function fetchProductsFromDirectory() {
                 if (response.ok) {
                     const text = await response.text();
                     const product = parseFrontMatter(text);
-                    console.log(`Parsing ${file}:`, {
-                        title: product.title,
-                        draft: product.draft,
+                    console.log(`Checking product ${file}:`, {
                         hasTitle: !!product.title,
-                        isDraft: !!product.draft
+                        title: product.title,
+                        isDraft: !!product.draft,
+                        draft: product.draft,
+                        willAdd: !!(product.title && !product.draft)
                     });
                     
                     if (product.title && !product.draft) {
@@ -207,9 +208,9 @@ async function fetchProductsFromDirectory() {
                         }
                         
                         products.push(product);
-                        console.log(`Added product: ${product.title}`);
+                        console.log(`✓ Added product: ${product.title}`);
                     } else {
-                        console.log(`Skipping ${file}: ${!product.title ? 'no title' : 'is draft'}`);
+                        console.log(`✗ Skipping ${file}: ${!product.title ? 'no title' : 'is draft'}`);
                     }
                 }
             } catch (err) {
@@ -223,6 +224,9 @@ async function fetchProductsFromDirectory() {
     } catch (error) {
         console.error('Error fetching products:', error);
     }
+    
+    console.log(`Final products summary: ${products.length} products loaded`);
+    console.log('Product titles:', products.map(p => p.title));
     
     return products;
 }
