@@ -1,7 +1,0 @@
-Improve how the website finds new fashion items for users to view
-
-Refactors product loading to directly fetch potential product filenames in `/content/products/` and removes dependency on directory listing.
-
-Replit-Commit-Author: Agent
-Replit-Commit-Session-Id: 350ca4e4-9ee9-4cf7-97ee-4136540d52ac
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/2938af96-10c4-430f-8359-cde93a52927e/11b8db5b-5615-4c1e-9b9d-b09422770011.jpg
