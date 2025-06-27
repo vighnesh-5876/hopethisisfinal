@@ -1,7 +1,7 @@
-Display new products added via admin panel without manually updating index
+Add new product to the storefront so customers can now view and purchase it
 
-Implements dynamic product discovery by scanning the `/content/products/` directory and updating `index.json` in `js/main.js`.
+Update product index JSON to include "new-admin-product.md" and increment product count.
 
 Replit-Commit-Author: Agent
 Replit-Commit-Session-Id: 350ca4e4-9ee9-4cf7-97ee-4136540d52ac
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/2938af96-10c4-430f-8359-cde93a52927e/6adeebf6-812b-4a71-bcdf-215a43ae1d24.jpg
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/2938af96-10c4-430f-8359-cde93a52927e/69a4ddd1-1ef2-438f-9496-c094447cecef.jpg
