@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Data Check</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .product { border: 1px solid #ddd; margin: 10px 0; padding: 15px; }
+        .status { padding: 5px 10px; border-radius: 5px; color: white; }
+        .published { background: green; }
+        .draft { background: orange; }
+    </style>
+</head>
+<body>
+    <h1>Product Data Verification</h1>
+    <div id="products-container"></div>
+
+    <script>
+        async function checkProducts() {
+            const container = document.getElementById('products-container');
+            
+            const productFiles = [
+                'elegant-silk-saree.md',
+                'designer-cotton-kurti.md', 
+                'embroidered-blouse.md',
+                'festive-georgette-saree.md',
+                'ethnic-printed-kurti.md',
+                'silk-designer-blouse.md'
+            ];
+            
+            for (const file of productFiles) {
+                try {
+                    const response = await fetch(`/content/products/${file}`);
+                    if (response.ok) {
+                        const text = await response.text();
+                        const product = parseFrontMatter(text);
+                        
+                        const productDiv = document.createElement('div');
+                        productDiv.className = 'product';
+                        productDiv.innerHTML = `
+                            <h3>${product.title || 'No Title'}</h3>
+                            <p><strong>File:</strong> ${file}</p>
+                            <p><strong>Price:</strong> ₹${product.price || 'Not set'}</p>
+                            <p><strong>Category:</strong> ${product.category || 'Not set'}</p>
+                            <p><strong>Available:</strong> ${product.available ? 'Yes' : 'No'}</p>
+                            <p><strong>Featured:</strong> ${product.featured ? 'Yes' : 'No'}</p>
+                            <p><strong>Status:</strong> <span class="status ${product.draft ? 'draft' : 'published'}">${product.draft ? 'DRAFT' : 'PUBLISHED'}</span></p>
+                            <p><strong>Image:</strong> ${product.image || 'Not set'}</p>
+                        `;
+                        container.appendChild(productDiv);
+                    }
+                } catch (error) {
+                    console.error(`Error loading ${file}:`, error);
+                }
+            }
+        }
+
+        function parseFrontMatter(content) {
+            const match = content.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
+            if (!match) return {};
+            
+            const frontMatter = match[1];
+            const data = {};
+            const lines = frontMatter.split('\n');
+            
+            for (const line of lines) {
+                const colonIndex = line.indexOf(':');
+                if (colonIndex > 0) {
+                    const key = line.substring(0, colonIndex).trim();
+                    let value = line.substring(colonIndex + 1).trim();
+                    
+                    if ((value.startsWith('"') && value.endsWith('"')) || 
+                        (value.startsWith("'") && value.endsWith("'"))) {
+                        value = value.slice(1, -1);
+                    }
+                    
+                    if (value === 'true') value = true;
+                    if (value === 'false') value = false;
+                    if (!isNaN(value) && value !== '') value = Number(value);
+                    
+                    data[key] = value;
+                }
+            }
+            
+            return data;
+        }
+
+        checkProducts();
+    </script>
+</body>
+</html>
