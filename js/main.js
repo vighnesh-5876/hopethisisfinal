@@ -115,50 +115,55 @@ async function fetchProductsFromDirectory() {
     const products = [];
     
     try {
-        // First, try to get directory listing via a known endpoint
-        // Since we can't directly list directory contents in a static environment,
-        // we'll use a more robust approach by trying common product files
-        // and also checking for any new files that might have been added
+        let productFiles = [];
         
-        const potentialFiles = [
-            'elegant-silk-saree.md',
-            'designer-cotton-kurti.md', 
-            'embroidered-blouse.md',
-            'festive-georgette-saree.md',
-            'ethnic-printed-kurti.md',
-            'silk-designer-blouse.md',
-            'test-multi-image-saree.md',
-            'admin-test-product.md'
-        ];
-        
-        // Try to fetch a directory index if available
+        // Try to fetch products index file first (for deployment)
         try {
-            const indexResponse = await fetch('/content/products/');
+            const indexResponse = await fetch('/content/products/index.json');
             if (indexResponse.ok) {
-                const indexText = await indexResponse.text();
-                console.log('Directory listing available, parsing for .md files');
-                
-                // Parse HTML directory listing to find .md files
-                const matches = indexText.match(/href="([^"]*\.md)"/g);
-                if (matches) {
-                    const foundFiles = matches.map(match => match.match(/href="([^"]*)"/)[1])
-                        .filter(file => file.endsWith('.md') && !file.includes('/') && file !== '.gitkeep');
-                    
-                    console.log('Found .md files in directory:', foundFiles);
-                    
-                    // Replace potential files with actually discovered files
-                    potentialFiles.length = 0; // Clear the array
-                    potentialFiles.push(...foundFiles);
-                } else {
-                    console.log('No .md files found in directory listing');
-                }
+                const indexData = await indexResponse.json();
+                productFiles = indexData.products || [];
+                console.log('Using products index.json:', productFiles);
+            } else {
+                throw new Error('index.json not found');
             }
         } catch (indexError) {
-            console.log('Directory listing not available, using known files');
+            console.log('Products index.json not available, trying directory listing');
+            
+            // Fallback to directory listing (for development)
+            try {
+                const dirResponse = await fetch('/content/products/');
+                if (dirResponse.ok) {
+                    const indexText = await dirResponse.text();
+                    console.log('Directory listing available, parsing for .md files');
+                    
+                    // Parse HTML directory listing to find .md files
+                    const matches = indexText.match(/href="([^"]*\.md)"/g);
+                    if (matches) {
+                        productFiles = matches.map(match => match.match(/href="([^"]*)"/)[1])
+                            .filter(file => file.endsWith('.md') && !file.includes('/') && file !== '.gitkeep');
+                        
+                        console.log('Found .md files in directory:', productFiles);
+                    }
+                }
+            } catch (dirError) {
+                console.log('Directory listing not available, using fallback list');
+                // Ultimate fallback with known files
+                productFiles = [
+                    'elegant-silk-saree.md',
+                    'designer-cotton-kurti.md', 
+                    'embroidered-blouse.md',
+                    'festive-georgette-saree.md',
+                    'ethnic-printed-kurti.md',
+                    'silk-designer-blouse.md',
+                    'test-multi-image-saree.md',
+                    'admin-test-product.md'
+                ];
+            }
         }
         
-        // Try to fetch each potential product file
-        for (const file of potentialFiles) {
+        // Try to fetch each product file
+        for (const file of productFiles) {
             try {
                 const response = await fetch(`/content/products/${file}`);
                 if (response.ok) {

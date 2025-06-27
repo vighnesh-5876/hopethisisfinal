@@ -1,7 +1,7 @@
-Improve product loading and display on the website for better user experience
+Dynamically display newly added fashion items automatically on the site
 
-Adds debugging tools and logging to troubleshoot product loading issues in js/main.js and introduces debug-products.html.
+Load products dynamically by fetching a products/index.json file and generate it automatically using a Node.js script.
 
 Replit-Commit-Author: Agent
 Replit-Commit-Session-Id: c3f81ff5-d56e-49f2-b672-81fd9255c186
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/b2ce4d04-aa8a-4f0c-9272-c62faa9aaf79/df66c714-a836-4ae3-bc45-63f346c84460.jpg
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/b2ce4d04-aa8a-4f0c-9272-c62faa9aaf79/24af4a27-fef4-4c10-b7fa-603344af68b5.jpg

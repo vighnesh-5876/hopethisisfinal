@@ -45,14 +45,44 @@
         let productsData = [];
 
         async function loadProducts() {
-            const productFiles = [
-                'elegant-silk-saree.md',
-                'designer-cotton-kurti.md', 
-                'embroidered-blouse.md',
-                'festive-georgette-saree.md',
-                'ethnic-printed-kurti.md',
-                'silk-designer-blouse.md'
-            ];
+            let productFiles = [];
+            
+            // Try to fetch products index file first
+            try {
+                const indexResponse = await fetch('/content/products/index.json');
+                if (indexResponse.ok) {
+                    const indexData = await indexResponse.json();
+                    productFiles = indexData.products || [];
+                    console.log('Using products index.json:', productFiles);
+                } else {
+                    throw new Error('index.json not found');
+                }
+            } catch (indexError) {
+                // Fallback to directory listing
+                try {
+                    const dirResponse = await fetch('/content/products/');
+                    if (dirResponse.ok) {
+                        const indexText = await dirResponse.text();
+                        const matches = indexText.match(/href="([^"]*\.md)"/g);
+                        if (matches) {
+                            productFiles = matches.map(match => match.match(/href="([^"]*)"/)[1])
+                                .filter(file => file.endsWith('.md') && !file.includes('/') && file !== '.gitkeep');
+                        }
+                    }
+                } catch (dirError) {
+                    // Ultimate fallback
+                    productFiles = [
+                        'elegant-silk-saree.md',
+                        'designer-cotton-kurti.md', 
+                        'embroidered-blouse.md',
+                        'festive-georgette-saree.md',
+                        'ethnic-printed-kurti.md',
+                        'silk-designer-blouse.md',
+                        'test-multi-image-saree.md',
+                        'admin-test-product.md'
+                    ];
+                }
+            }
             
             productsData = [];
             const productsList = document.getElementById('productsList');

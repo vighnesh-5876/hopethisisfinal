@@ -100,6 +100,10 @@ This is a static fashion designer website built with HTML, CSS, and JavaScript. 
 
 ## Recent Changes
 
+- **June 27, 2025** - Dynamic Product Loading System: Implemented products/index.json for automatic detection of admin-added products
+- **June 27, 2025** - Deployment-Ready Architecture: System now works on both development and production environments (Netlify)
+- **June 27, 2025** - Automatic Index Generator: Created Node.js script and web tool to regenerate product index automatically
+- **June 27, 2025** - Removed Hardcoded Dependencies: Eliminated all hardcoded product filenames from main.js and export-products.html
 - **June 26, 2025** - Performance Optimization: Dramatically reduced product loading time from 2-3 minutes to seconds by streamlining product discovery
 - **June 26, 2025** - Professional Footer: Complete redesign with brand section, quick links, categories, legal pages, and contact information
 - **June 26, 2025** - Legal Pages: Created Privacy Policy, Terms & Conditions, and Return Policy pages with professional content
